@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Introspect
 
 struct ContentView: View {
     @State private var showingAddView = false
@@ -14,20 +15,30 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(expenses.items) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.name)
-                                .font(.headline)
-                            Text(item.type)
+            ZStack {
+                List {
+                    ForEach(expenses.items) { item in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .font(.headline)
+                                Text(item.type)
+                            }
+                            Spacer()
+                            Text(item.amount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                                .foregroundColor(item.color)
                         }
-                        Spacer()
-                        Text(item.amount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
-                            .foregroundColor(item.color)
                     }
+                    .onDelete(perform: removeItems)
                 }
-                .onDelete(perform: removeItems)
+                .background(
+                    Image("LightGrayBackground")
+                        .resizable()
+                        .edgesIgnoringSafeArea(.all)
+                )
+                .introspectTableView { tableView in
+                    tableView.backgroundColor = .clear
+                }
             }
             .navigationTitle("iExpense")
             .toolbar {
@@ -35,7 +46,10 @@ struct ContentView: View {
                     showingAddView = true
                 } label: {
                     Image(systemName: "plus")
+                        .font(.body.bold())
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingAddView) {
                 AddView(expenses: expenses)

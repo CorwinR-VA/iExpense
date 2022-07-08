@@ -13,6 +13,7 @@ struct AddView: View {
     @State private var name = ""
     @State private var type = ""
     @State private var amount = 0.0
+    @State private var footer = false
     
     @ObservedObject var expenses: Expenses
     
@@ -21,22 +22,38 @@ struct AddView: View {
     var body: some View {
         NavigationView {
             Form {
-                TextField("Name", text: $name)
-                Picker("Type", selection: $type) {
-                    ForEach(types, id: \.self) {
-                        Text($0)
+                Section {
+                    TextField("Name", text: $name)
+                    Picker("Type", selection: $type) {
+                        ForEach(types, id: \.self) {
+                            Text($0)
+                        }
+                    }
+                    TextField("Amount", value: $amount, format: .currency(code: "USD"))
+                        .keyboardType(.decimalPad)
+                } footer: {
+                    if footer == true {
+                        Text("CANNOT SAVE WHILE ANY FIELD IS LEFT EMPTY")
+                            .foregroundColor(Color.red)
                     }
                 }
-                TextField("Amount", value: $amount, format: .currency(code: "USD"))
-                    .keyboardType(.decimalPad)
             }
             .navigationTitle("Add new expense")
             .toolbar {
-                Button("Save") {
-                    let item = ExpenseItem(name: name, type: type, amount: amount)
-                    expenses.items.append(item)
-                    dismiss()
+                Button("SAVE") {
+                    if name != "" || type != "" || amount != 0.0 {
+                        footer = false
+                        let item = ExpenseItem(name: name, type: type, amount: amount)
+                        expenses.items.append(item)
+                        dismiss()
+                    } else {
+                        footer = true
+                    }
                 }
+                .font(.title3.bold())
+                .buttonStyle(.plain)
+                .foregroundColor(name == "" || type == "" || amount == 0.0 ? .secondary : .primary)
+                    
             }
         }
     }
